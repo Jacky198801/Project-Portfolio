@@ -1,6 +1,3 @@
-## VBA code:
-
-
 Sub makeRoute_Descent()
     'Clear the spreadsheet
     Range("A:ZZ").Clear
