@@ -1,5 +1,4 @@
-'Below is a framework/template that can be used to start your coursework. Currently the program reads in the specified problem file
-'and sets up initial arrays and variables.
+## VBA code
 
 
 Sub makeRoute_Descent()
