@@ -1,0 +1,236 @@
+'Below is a framework/template that can be used to start your coursework. Currently the program reads in the specified problem file
+'and sets up initial arrays and variables.
+
+
+Sub makeRoute_Descent()
+    'Clear the spreadsheet
+    Range("A:ZZ").Clear
+    Sheet2.Range("A:AA").Clear
+    'First, define the variables
+    Dim v As Integer, m As Integer, N As Integer, i As Integer, depotX As Integer, depotY As Integer
+    Dim solCost As Double
+    Dim inputFileName As String
+    
+    'Ask the user for the input file name. The data in the input file is assumed to be in the correct format
+    inputFileName = InputBox("Enter Problem Filename (include .txt extension)")
+    inputFileName = ActiveWorkbook.Path & "/" & inputFileName
+    Open inputFileName For Input As #1
+        
+    'Now read-in the 4 variable values at the top of the file
+    Input #1, depotX
+    Input #1, depotY
+    Input #1, N
+    Input #1, v
+    m = Int(N \ v)   'It is always assumed that n/v gives an integer with no remainder
+        
+    'Now construct the X and Y arrays that hold the n coordinates and read them in
+ 
+    ReDim x(1 To N) As Integer, y(1 To N) As Integer
+    For i = 1 To N
+        Input #1, x(i)
+        Input #1, y(i)
+    Next i
+    
+    'Having read the problem we close the input file
+    Close #1
+    
+    '**************************************************************
+    
+    'Now construct the 2D distance array that holds the distances between each pair of loactions
+    '(see the TSP example from class on how to do this)
+  
+
+    ReDim dist(1 To N, 1 To N) As Double 'distance between the cities stored as an array
+    ReDim coord(1 To N, 1 To N) As Integer 'x- and y-coordinates of the cities
+    'The distance between cities that the vehicle need to pass
+    For i = 1 To N
+        For j = 1 To N
+            dist(i, j) = Sqr((x(i) - x(j)) ^ 2 + (y(i) - y(j)) ^ 2)
+        Next j
+    Next i
+    'The distance between depot and cities
+    For i = 1 To N
+        dist(1, i) = Sqr((x(1) - x(i)) ^ 2 + (y(1) - y(i)) ^ 2)
+    Next i
+    For j = 1 To N
+        dist(j, 1) = Sqr((x(j) - x(1)) ^ 2 + (y(j) - y(1)) ^ 2)
+    Next j
+   
+
+            
+    
+    '**************************************************************
+    
+    'We now want to try to solve the problem. First, we want to make a random starting solution
+    ReDim sol(1 To v, 1 To m) As Integer
+    makeInitialSolution sol, m, v, N
+    'Now evaluate this initial solution
+    solCost = cost(sol, v, m, depotX, depotY, dist, x, y)
+    Cells(1, 5).Value = solCost
+    
+    'Now carry out the descent procedure using the initial randomly generated solution
+    doDescent sol, dist, depotX, depotY, N, x, y, v, m
+    'When we are here, we have finished the optimisation process. Thus we mention this to the user.
+    MsgBox "Run Completed Succesfully"
+    
+End Sub
+   
+   
+    'We now wish to optimise the solution, so you can insert code here. Feel free to create new sub-procedures an funtions as desired.
+    Sub doDescent(sol() As Integer, dist() As Double, depotX As Integer, depotY As Integer, N As Integer, x() As Integer, y() As Integer, v As Integer, m As Integer)
+
+    'Descent algorithm run for 100000 iterations
+    Dim i As Integer, j As Integer, a As Integer, b As Integer, c As Integer, d As Integer
+    Dim solCost As Double, newCost As Double
+    Dim T As Long 'T is counting times of iteration
+    Dim Row As Integer ' Row is the row of the value
+    
+    'Now evaluate this initial solution
+    solCost = cost(sol, v, m, depotX, depotY, dist, x, y)
+    Cells(1, 1).Value = "Total Cost"
+    Cells(2, 1).Value = solCost
+    
+   
+    
+    'Now carry out the main loop/iteration of the Random Descent algorithm
+    For T = 2 To 10000
+
+    
+        'Select two elements/cities in the solution at random
+         a = Int(v * Rnd + 1)
+         b = Int(m * Rnd + 1)
+         c = Int(v * Rnd + 1)
+         d = Int(m * Rnd + 1)
+
+        'Swap the two elements/cities and re-evaluate the cost function
+         swap sol(a, b), sol(c, d)
+         newCost = cost(sol, v, m, depotX, depotY, dist, x, y)
+        
+        'If the change decreases or maintains the cost, then accept the new (candidate) solution
+        If newCost <= solCost Then
+        'Keep the move and output progress
+         solCost = newCost
+        Else
+       'Otherwise reset the neighborhood move
+        swap sol(a, b), sol(c, d)
+        End If
+      'To monitor computations in progress, output the cost and solution every 1000 iterations
+      
+      
+      If T Mod 100 = 0 Then
+      'Write the current cost
+      Cells(Int(T / 100) + 2, 1).Value = solCost
+    'Write out the current solution (best so far) by printing the order that the coordinates are visited
+      'MsgBox "Checking..."
+      
+    
+      
+      col14 = 14
+      col15 = 15
+      For i = 1 To v
+          Cells(1, col14).Value = "      Vehicles  " & i
+          For j = 1 To m
+              Cells(2, col14).Value = depotX
+              Cells(2, col15).Value = depotY
+              Cells(j + 2, col14).Value = x(sol(i, j))
+              Cells(j + 2, col15).Value = y(sol(i, j))
+              Cells(m + 3, col14).Value = depotX
+              Cells(m + 3, col15).Value = depotY
+         
+          Next j
+      col14 = col14 + 2
+      col15 = col15 + 2
+      Next i
+      ActiveSheet.Calculate
+    
+      End If
+      
+    Next T
+    
+
+      Sheet2.Cells(1, 1).Value = solCost
+      Cells(1, 9).Value = solCost
+      Cells(1, 7).Value = "Final Solution:"
+      
+      For i = 1 To v
+         For j = 1 To m
+            Cells(i + 1, j + 2).Value = sol(i, j)
+            Sheet2.Cells(i + 1, j).Value = sol(i, j)
+         Next j
+      Next i
+    
+    End Sub
+
+
+Sub makeInitialSolution(sol() As Integer, m, v, N As Integer)
+    'Code for producing an initial solution can go here
+    'If you want to change the paramters to this sub-procedure, feel free
+    
+    Dim i, j, p, R, s As Integer
+     
+    p = 1
+    For i = 1 To v
+        For j = 1 To m
+           If p <= N Then
+               sol(i, j) = p
+               p = p + 1
+            End If
+        Next j
+    Next i
+
+    
+    'Now randomly permute these numbers to form our initial solution.
+    'This means that the array called "sol" contains the numbers from 1 to n in a random order.
+    Cells(1, 3).Value = "Initial solution:"
+    For i = 1 To v
+       For j = 1 To m
+               R = Int((v - i + 1) * Rnd() + i)
+               s = Int((m - j + 1) * Rnd() + j)
+               swap sol(i, j), sol(R, s)
+               Cells(i + 1, j + 2).Value = sol(i, j)
+       Next j
+    Next i
+        
+    ActiveSheet.Calculate
+    MsgBox "Checking..."
+     
+End Sub
+
+
+Function cost(sol() As Integer, v As Integer, m As Integer, depotX As Integer, depotY As Integer, dist() As Double, x() As Integer, y() As Integer)
+    'This function takes a candidate solution (a (vxm) 2d array) and returns its cost.
+    'It does this by referring to the "dist" array and the coordinates of the depot
+     cost = 0
+     
+     For i = 1 To v
+        For j = 1 To m - 1
+            cost = cost + dist(sol(i, j), sol(i, j + 1))
+           
+        Next j
+    Next i
+    
+    For i = 1 To v
+        cost = cost + Sqr((depotX - x(sol(i, 1))) ^ 2 + (depotY - y(sol(i, 1))) ^ 2) + Sqr((depotX - x(sol(i, m))) ^ 2 + (depotY - y(sol(i, m))) ^ 2)
+        
+    Next i
+    
+     
+    'Below is the return statement. Currently this funtion always returns zero (obviously this will need to be changed)
+    solCost = cost
+    
+    
+End Function
+
+
+Sub swap(a As Integer, b As Integer)
+
+    'Swaps the values of two integer variables a and b
+    Dim x As Integer
+    x = a
+    a = b
+    b = x
+    
+End Sub
+
+
+
