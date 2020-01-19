@@ -28,13 +28,11 @@ Particular problem instances are specified in text files as follows. Each text f
        4	0
 
 A candidate solution to this problem can be conveniently stored as a 2D array with v rows and m columns. Here the locations to visit that are assigned to vehicle i appear in row i in the given order for deliveries, i=1,2,…,v. For example, the following array S refers to the solution illustrated below (for the problem instance given above).
-
-                
-                
-                  ｜4	    ｜1	    5｜
-            S =   ｜2	    ｜3	    7｜
-                  ｜8	    ｜9	    6｜              
-
+            
+       | 4 | 1 | 5 |
+   S = | - | - | - |
+       | 2 | 3 | 7 |
+       | 8 | 9 | 6 |
 
 
 
