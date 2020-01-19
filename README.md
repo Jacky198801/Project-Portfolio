@@ -31,9 +31,10 @@ A candidate solution to this problem can be conveniently stored as a 2D array wi
 
                 
                 
-                  4	    1	    5
-            S =   2	    3	    7
-                  8	    9	    6               
+                  ｜4	    ｜1	    5｜
+            S =   ｜2	    ｜3	    7｜
+                  ｜8	    ｜9	    6｜              
+
 
 
 
